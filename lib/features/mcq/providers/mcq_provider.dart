@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/services/content_service.dart';
 import '../models/mcq_model.dart';
 
 class McqProvider with ChangeNotifier {
@@ -18,6 +19,22 @@ class McqProvider with ChangeNotifier {
       : null;
 
   double get progress => _questions.isEmpty ? 0 : (_currentIndex + 1) / _questions.length;
+
+  Future<void> loadChapterQuestions(String chapterId) async {
+    _questions = [];
+    _isFinished = false;
+    notifyListeners();
+    
+    try {
+      _questions = await ContentService.fetchChapterMcqs(chapterId);
+      _currentIndex = 0;
+      _userAnswers = {};
+    } catch (e) {
+      // Handle error
+    } finally {
+      notifyListeners();
+    }
+  }
 
   void loadQuestions(List<McqQuestion> questions) {
     _questions = questions;

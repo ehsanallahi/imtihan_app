@@ -54,6 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: 'Email Address',
                   hint: 'Enter your email',
                   prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Email is required';

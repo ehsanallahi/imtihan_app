@@ -66,6 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   label: 'Email Address',
                   hint: 'Enter your email',
                   prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Email is required';

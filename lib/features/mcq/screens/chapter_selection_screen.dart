@@ -45,29 +45,32 @@ class ChapterSelectionScreen extends StatelessWidget {
     );
   }
 
-  void _startPractice(BuildContext context, Chapter chapter) {
+  void _startPractice(BuildContext context, Chapter chapter) async {
     final provider = Provider.of<McqProvider>(context, listen: false);
     
-    // In a real app, you would fetch questions for this specific chapter
-    final mockQuestions = [
-      McqQuestion(
-        id: '1',
-        questionText: 'Which of the following is a component of ${subject.name}?',
-        options: [
-          McqOption(id: 'a', text: 'Option A'),
-          McqOption(id: 'b', text: 'Option B'),
-          McqOption(id: 'c', text: 'Option C'),
-          McqOption(id: 'd', text: 'Option D'),
-        ],
-        correctAnswerId: 'a',
-      ),
-      // ... more questions
-    ];
-
-    provider.loadQuestions(mockQuestions);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      await provider.loadChapterQuestions(chapter.id);
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load questions')),
+        );
+      }
+    }
   }
 }

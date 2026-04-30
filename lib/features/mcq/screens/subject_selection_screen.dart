@@ -5,8 +5,21 @@ import '../providers/subject_provider.dart';
 import '../models/subject_model.dart';
 import 'chapter_selection_screen.dart';
 
-class SubjectSelectionScreen extends StatelessWidget {
+class SubjectSelectionScreen extends StatefulWidget {
   const SubjectSelectionScreen({super.key});
+
+  @override
+  State<SubjectSelectionScreen> createState() => _SubjectSelectionScreenState();
+}
+
+class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SubjectProvider>().loadSubjects();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +29,14 @@ class SubjectSelectionScreen extends StatelessWidget {
       ),
       body: Consumer<SubjectProvider>(
         builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (provider.subjects.isEmpty) {
+            return const Center(child: Text('No subjects available'));
+          }
+
           return GridView.builder(
             padding: const EdgeInsets.all(24),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
