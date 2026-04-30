@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import 'home_screen.dart';
-import '../../past_papers/screens/past_paper_list_screen.dart';
+import 'practice_hub_screen.dart';
 import '../../chat/screens/chat_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardShell extends StatefulWidget {
   const DashboardShell({super.key});
@@ -16,9 +17,9 @@ class _DashboardShellState extends State<DashboardShell> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const PastPaperListScreen(),
+    const PracticeHubScreen(),
     const ChatScreen(),
-    const Center(child: Text('Profile Screen')),
+    const ProfileScreen(),
   ];
 
   @override
