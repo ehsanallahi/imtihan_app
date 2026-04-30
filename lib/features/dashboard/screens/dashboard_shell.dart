@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import 'home_screen.dart';
 
 class DashboardShell extends StatefulWidget {
   const DashboardShell({super.key});
@@ -12,7 +13,7 @@ class _DashboardShellState extends State<DashboardShell> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const Center(child: Text('Home Screen')),
+    const HomeScreen(),
     const Center(child: Text('Practice Screen')),
     const Center(child: Text('AI Tutor Screen')),
     const Center(child: Text('Profile Screen')),

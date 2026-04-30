@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/screens/welcome_screen.dart';
+import 'features/mcq/providers/mcq_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ImtihanApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => McqProvider()),
+      ],
+      child: const ImtihanApp(),
+    ),
+  );
 }
 
 class ImtihanApp extends StatelessWidget {
