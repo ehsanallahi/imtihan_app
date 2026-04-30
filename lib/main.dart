@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'features/mcq/providers/mcq_provider.dart';
+import 'features/chat/providers/chat_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +11,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => McqProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const ImtihanApp(),
     ),
