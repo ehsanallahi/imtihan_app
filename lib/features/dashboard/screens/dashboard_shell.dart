@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import 'home_screen.dart';
+import '../../past_papers/screens/past_paper_list_screen.dart';
 import '../../chat/screens/chat_screen.dart';
 
 class DashboardShell extends StatefulWidget {
@@ -15,7 +16,7 @@ class _DashboardShellState extends State<DashboardShell> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Practice Screen')),
+    const PastPaperListScreen(),
     const ChatScreen(),
     const Center(child: Text('Profile Screen')),
   ];
