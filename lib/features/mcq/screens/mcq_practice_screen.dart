@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../providers/mcq_provider.dart';
 import '../models/mcq_model.dart';
 import 'results_screen.dart';
+import '../../chat/screens/chat_screen.dart';
 
 class McqPracticeScreen extends StatelessWidget {
   const McqPracticeScreen({super.key});
@@ -262,9 +263,13 @@ class McqPracticeScreen extends StatelessWidget {
   }
 
   void _openAiTutor(BuildContext context, McqQuestion question) {
-    // Navigate to Chat or show BottomSheet
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('AI Tutor coming soon!')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          initialMessage: 'I need help with this question: "${question.questionText}"',
+        ),
+      ),
     );
   }
 

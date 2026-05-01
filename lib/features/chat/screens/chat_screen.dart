@@ -5,7 +5,8 @@ import '../providers/chat_provider.dart';
 import '../models/chat_model.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String? initialMessage;
+  const ChatScreen({super.key, this.initialMessage});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -14,6 +15,16 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ChatProvider>().sendMessage(widget.initialMessage!);
+      });
+    }
+  }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

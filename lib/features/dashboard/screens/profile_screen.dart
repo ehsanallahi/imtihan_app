@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/providers/user_provider.dart';
 import '../../auth/screens/welcome_screen.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Profile'),
+            title: Text(context.l10n('profile')),
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
@@ -53,9 +55,9 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Row(
                     children: [
-                      _buildStatCard('Tests Taken', '${stats?.testsTaken ?? 0}'),
+                      _buildStatCard(context.l10n('tests'), '${stats?.testsTaken ?? 0}'),
                       const SizedBox(width: 16),
-                      _buildStatCard('Accuracy', '${stats?.averageAccuracy ?? 0}%'),
+                      _buildStatCard(context.l10n('correct'), '${stats?.averageAccuracy ?? 0}%'),
                     ],
                   ),
                 ),
@@ -63,13 +65,21 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 32),
                 
                 // Menu Items
+                _buildMenuItem(Icons.language, context.l10n('language'), onTap: () {
+                  final localeProvider = context.read<LocaleProvider>();
+                  if (localeProvider.isUrdu) {
+                    localeProvider.setLocale(const Locale('en'));
+                  } else {
+                    localeProvider.setLocale(const Locale('ur'));
+                  }
+                }, trailing: Text(context.read<LocaleProvider>().isUrdu ? 'اردو' : 'English')),
                 _buildMenuItem(Icons.history, 'Practice History', onTap: () {}),
                 _buildMenuItem(Icons.bookmark_outline, 'Bookmarked Questions', onTap: () {}),
                 _buildMenuItem(Icons.notifications_none, 'Notifications', onTap: () {}),
                 _buildMenuItem(Icons.help_outline, 'Help & Support', onTap: () {}),
                 _buildMenuItem(
                   Icons.logout, 
-                  'Logout', 
+                  context.l10n('logout'), 
                   isDestructive: true,
                   onTap: () async {
                     await userProvider.logout();
@@ -123,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool isDestructive = false, required VoidCallback onTap}) {
+  Widget _buildMenuItem(IconData icon, String title, {bool isDestructive = false, required VoidCallback onTap, Widget? trailing}) {
     return ListTile(
       leading: Icon(
         icon,
@@ -136,7 +146,7 @@ class ProfileScreen extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, size: 20),
+      trailing: trailing ?? const Icon(Icons.chevron_right, size: 20),
       onTap: onTap,
     );
   }

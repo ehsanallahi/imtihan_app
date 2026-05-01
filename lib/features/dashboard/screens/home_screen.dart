@@ -6,6 +6,7 @@ import '../../mcq/providers/mcq_provider.dart';
 import '../../mcq/screens/mcq_practice_screen.dart';
 import '../../auth/providers/user_provider.dart';
 import '../../../core/services/content_service.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,11 +27,11 @@ class HomeScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
                 Text(
-                  'Hello, ${user?.name ?? 'Student'}!',
+                  '${context.l10n('hello_student').replaceFirst('Student', user?.name ?? 'Student')}',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
                 Text(
-                  'Ready to practice today?',
+                  context.l10n('ready_to_practice'),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -40,10 +41,10 @@ class HomeScreen extends StatelessWidget {
                 // Quick Action Card (Continue Learning)
                 _buildActionCard(
                   context,
-                  title: recentChapter != null ? 'Continue Learning' : 'Start MCQ Practice',
+                  title: recentChapter != null ? context.l10n('continue_learning') : context.l10n('start_mcq'),
                   subtitle: recentChapter != null 
-                    ? 'Resume ${recentChapter.name}' 
-                    : 'Select a subject to begin',
+                    ? '${context.l10n('resume')} ${recentChapter.name}' 
+                    : context.l10n('select_subject'),
                   icon: Icons.play_arrow_rounded,
                   color: AppColors.primaryTeal,
                   onTap: () {
@@ -59,7 +60,7 @@ class HomeScreen extends StatelessWidget {
                 
                 _buildActionCard(
                   context,
-                  title: 'AI Tutor',
+                  title: context.l10n('ai_tutor'),
                   subtitle: 'Ask questions about any topic',
                   icon: Icons.psychology_rounded,
                   color: AppColors.primaryGold,
@@ -68,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                 
                 const SizedBox(height: 32),
                 Text(
-                  'Recent Progress',
+                  context.l10n('recent_progress'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
@@ -82,9 +83,9 @@ class HomeScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _StatItem(label: 'Tests', value: '${stats?.testsTaken ?? 0}'),
-                      _StatItem(label: 'Correct', value: '${stats?.averageAccuracy ?? 0}%'),
-                      _StatItem(label: 'Streak', value: '${stats?.currentStreak ?? 0} days'),
+                      _StatItem(label: context.l10n('tests'), value: '${stats?.testsTaken ?? 0}'),
+                      _StatItem(label: context.l10n('correct'), value: '${stats?.averageAccuracy ?? 0}%'),
+                      _StatItem(label: context.l10n('streak'), value: '${stats?.currentStreak ?? 0} ${context.l10n('days')}'),
                     ],
                   ),
                 ),
