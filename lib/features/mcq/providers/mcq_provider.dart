@@ -102,6 +102,19 @@ class McqProvider with ChangeNotifier {
     }
   }
 
+  void jumpToQuestion(int index) {
+    if (index >= 0 && index < _questions.length) {
+      _currentIndex = index;
+      _isCurrentAnswerSubmitted = _userAnswers.containsKey(_currentIndex);
+      notifyListeners();
+    }
+  }
+
+  void setCurrentChapter(String chapterId) {
+    _currentChapterId = chapterId;
+    notifyListeners();
+  }
+
   int get score {
     int count = 0;
     _userAnswers.forEach((index, selectedId) {

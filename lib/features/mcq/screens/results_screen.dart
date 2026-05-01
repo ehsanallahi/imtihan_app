@@ -4,7 +4,8 @@ import '../../../core/theme/app_theme.dart';
 import '../providers/mcq_provider.dart';
 
 class ResultsScreen extends StatelessWidget {
-  const ResultsScreen({super.key});
+  final bool isExam;
+  const ResultsScreen({super.key, this.isExam = false});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class ResultsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Practice Results'),
+        title: Text(isExam ? 'Exam Results' : 'Practice Results'),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(

@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../../features/mcq/models/subject_model.dart';
 import '../../features/mcq/models/mcq_model.dart';
 import '../../features/auth/models/user_model.dart';
+import '../../features/past_papers/models/past_paper_model.dart';
 
 
 class ContentService {
@@ -81,5 +82,41 @@ class ContentService {
       );
     }
     return null;
+  }
+
+  static Future<List<PastPaper>> fetchPastPapers() async {
+    final response = await ApiService.get('/past-papers');
+    if (response.statusCode == 200) {
+      List data = jsonDecode(response.body);
+      return data.map((json) => PastPaper(
+        id: json['id'],
+        title: json['title'],
+        board: json['board'],
+        year: json['year'].toString(),
+        grade: json['grade'].toString(),
+        subject: json['subject'],
+      )).toList();
+    }
+    throw Exception('Failed to load past papers');
+  }
+
+  static Future<List<McqQuestion>> fetchPastPaperMcqs(String paperId) async {
+    final response = await ApiService.get('/past-papers/$paperId/mcqs');
+    if (response.statusCode == 200) {
+      List data = jsonDecode(response.body);
+      return data.map((json) => McqQuestion(
+        id: json['id'],
+        questionText: json['question'],
+        correctAnswerId: json['correctAnswer'],
+        explanation: json['explanation'],
+        options: [
+          McqOption(id: 'A', text: json['optionA']),
+          McqOption(id: 'B', text: json['optionB']),
+          McqOption(id: 'C', text: json['optionC']),
+          McqOption(id: 'D', text: json['optionD']),
+        ],
+      )).toList();
+    }
+    throw Exception('Failed to load paper questions');
   }
 }

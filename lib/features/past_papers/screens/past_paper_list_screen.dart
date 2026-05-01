@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/past_paper_provider.dart';
 import '../models/past_paper_model.dart';
+import '../../mcq/providers/exam_provider.dart';
+import '../../mcq/providers/mcq_provider.dart';
+import '../../mcq/screens/exam_screen.dart';
+import '../../../core/services/content_service.dart';
 
 class PastPaperListScreen extends StatelessWidget {
   const PastPaperListScreen({super.key});
@@ -178,11 +182,45 @@ class _PastPaperCard extends StatelessWidget {
           ],
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          // Open Paper Preview or Start Practice
-        },
+        onTap: () => _startExam(context),
       ),
     );
+  }
+
+  Future<void> _startExam(BuildContext context) async {
+    final mcqProvider = Provider.of<McqProvider>(context, listen: false);
+    final examProvider = Provider.of<ExamProvider>(context, listen: false);
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final questions = await ContentService.fetchPastPaperMcqs(paper.id);
+      
+      mcqProvider.loadQuestions(questions);
+      mcqProvider.setCurrentChapter(paper.id); // Tag results with paper ID
+      
+      examProvider.startExam(paper.id, paper.title, 40); // Standard 40 min exam
+
+      if (context.mounted) {
+        Navigator.pop(context); // Remove loading
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ExamScreen()),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Remove loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading paper: $e')),
+        );
+      }
+    }
   }
 }
 
