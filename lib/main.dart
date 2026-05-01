@@ -6,6 +6,8 @@ import 'features/mcq/providers/mcq_provider.dart';
 import 'features/chat/providers/chat_provider.dart';
 import 'features/past_papers/providers/past_paper_provider.dart';
 import 'features/mcq/providers/subject_provider.dart';
+import 'features/auth/providers/user_provider.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +18,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => PastPaperProvider()),
         ChangeNotifierProvider(create: (_) => SubjectProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserData()),
       ],
       child: const ImtihanApp(),
     ),

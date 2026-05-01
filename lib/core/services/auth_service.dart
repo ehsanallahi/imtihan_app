@@ -50,4 +50,13 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.containsKey('auth_token');
   }
+
+  static Future<Map<String, dynamic>?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userData = prefs.getString('user_data');
+    if (userData != null) {
+      return jsonDecode(userData);
+    }
+    return null;
+  }
 }

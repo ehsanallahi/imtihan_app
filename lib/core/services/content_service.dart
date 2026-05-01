@@ -2,6 +2,8 @@ import 'dart:convert';
 import '../services/api_service.dart';
 import '../../features/mcq/models/subject_model.dart';
 import '../../features/mcq/models/mcq_model.dart';
+import '../../features/auth/models/user_model.dart';
+
 
 class ContentService {
   static Future<List<Subject>> fetchSubjects() async {
@@ -57,5 +59,27 @@ class ContentService {
     if (response.statusCode != 201 && response.statusCode != 200) {
       throw Exception('Failed to save progress');
     }
+  }
+
+  static Future<UserStats> fetchUserStats() async {
+    final response = await ApiService.get('/users/me/stats');
+    if (response.statusCode == 200) {
+      return UserStats.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Failed to load user stats');
+  }
+
+  static Future<Chapter?> fetchRecentChapter() async {
+    final response = await ApiService.get('/users/me/recent-chapter');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data == null) return null;
+      return Chapter(
+        id: data['id'],
+        name: data['name'],
+        questionCount: data['questionCount'] ?? 0,
+      );
+    }
+    return null;
   }
 }

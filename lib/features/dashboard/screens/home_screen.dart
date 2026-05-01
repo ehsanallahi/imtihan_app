@@ -4,77 +4,95 @@ import '../../../core/theme/app_theme.dart';
 import '../../mcq/models/mcq_model.dart';
 import '../../mcq/providers/mcq_provider.dart';
 import '../../mcq/screens/mcq_practice_screen.dart';
+import '../../auth/providers/user_provider.dart';
+import '../../../core/services/content_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            Text(
-              'Hello, Student!',
-              style: Theme.of(context).textTheme.displaySmall,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final user = userProvider.user;
+        final stats = userProvider.stats;
+        final recentChapter = userProvider.recentChapter;
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Hello, ${user?.name ?? 'Student'}!',
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
+                Text(
+                  'Ready to practice today?',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Quick Action Card (Continue Learning)
+                _buildActionCard(
+                  context,
+                  title: recentChapter != null ? 'Continue Learning' : 'Start MCQ Practice',
+                  subtitle: recentChapter != null 
+                    ? 'Resume ${recentChapter.name}' 
+                    : 'Select a subject to begin',
+                  icon: Icons.play_arrow_rounded,
+                  color: AppColors.primaryTeal,
+                  onTap: () {
+                    if (recentChapter != null) {
+                      _resumeChapter(context, recentChapter.id);
+                    } else {
+                      // Navigate to Practice Hub (handled by Shell)
+                    }
+                  },
+                ),
+                
+                const SizedBox(height: 16),
+                
+                _buildActionCard(
+                  context,
+                  title: 'AI Tutor',
+                  subtitle: 'Ask questions about any topic',
+                  icon: Icons.psychology_rounded,
+                  color: AppColors.primaryGold,
+                  onTap: () {},
+                ),
+                
+                const SizedBox(height: 32),
+                Text(
+                  'Recent Progress',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatItem(label: 'Tests', value: '${stats?.testsTaken ?? 0}'),
+                      _StatItem(label: 'Correct', value: '${stats?.averageAccuracy ?? 0}%'),
+                      _StatItem(label: 'Streak', value: '${stats?.currentStreak ?? 0} days'),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Text(
-              'Ready to practice today?',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            
-            // Quick Action Card
-            _buildActionCard(
-              context,
-              title: 'Start MCQ Practice',
-              subtitle: '20 Questions from Biology Chapter 1',
-              icon: Icons.play_arrow_rounded,
-              color: AppColors.primaryTeal,
-              onTap: () => _startPractice(context),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            _buildActionCard(
-              context,
-              title: 'AI Tutor',
-              subtitle: 'Ask questions about any topic',
-              icon: Icons.psychology_rounded,
-              color: AppColors.primaryGold,
-              onTap: () {},
-            ),
-            
-            const SizedBox(height: 32),
-            Text(
-              'Recent Progress',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatItem(label: 'Tests', value: '12'),
-                  _StatItem(label: 'Correct', value: '85%'),
-                  _StatItem(label: 'Streak', value: '4 days'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -140,40 +158,40 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _startPractice(BuildContext context) {
-    final provider = Provider.of<McqProvider>(context, listen: false);
+  Future<void> _resumeChapter(BuildContext context, String chapterId) async {
+    final mcqProvider = Provider.of<McqProvider>(context, listen: false);
     
-    // Mock Data
-    final mockQuestions = [
-      McqQuestion(
-        id: '1',
-        questionText: 'What is the primary function of Mitochondria?',
-        options: [
-          McqOption(id: 'a', text: 'Protein Synthesis'),
-          McqOption(id: 'b', text: 'Energy Production (ATP)'),
-          McqOption(id: 'c', text: 'Waste Disposal'),
-          McqOption(id: 'd', text: 'DNA Replication'),
-        ],
-        correctAnswerId: 'b',
-      ),
-      McqQuestion(
-        id: '2',
-        questionText: 'Which gas is released during photosynthesis?',
-        options: [
-          McqOption(id: 'a', text: 'Carbon Dioxide'),
-          McqOption(id: 'b', text: 'Nitrogen'),
-          McqOption(id: 'c', text: 'Oxygen'),
-          McqOption(id: 'd', text: 'Hydrogen'),
-        ],
-        correctAnswerId: 'c',
-      ),
-    ];
-
-    provider.loadQuestions(mockQuestions);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      final questions = await ContentService.fetchChapterMcqs(chapterId);
+      mcqProvider.loadQuestions(questions);
+      mcqProvider.setCurrentChapter(chapterId);
+      
+      if (context.mounted) {
+        Navigator.pop(context); // Remove loading
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Remove loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading MCQs: $e')),
+        );
+      }
+    }
+  }
+
+  void _startPractice(BuildContext context) {
+    // This is now replaced by _resumeChapter or handled by the Practice Hub navigation
   }
 }
 
