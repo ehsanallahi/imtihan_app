@@ -136,7 +136,7 @@ class ExamScreen extends StatelessWidget {
         ),
         IconButton(
           icon: Icon(
-            isFlagged ? Icons.flag_rounded : Icons.flag_outline_rounded,
+            isFlagged ? Icons.flag_rounded : Icons.outlined_flag,
             color: isFlagged ? AppColors.primaryCrimson : AppColors.textSecondary,
           ),
           onPressed: () => exam.toggleFlag(question.id),
