@@ -41,4 +41,21 @@ class ContentService {
     }
     throw Exception('Failed to load MCQs');
   }
+
+  static Future<void> saveQuizResults({
+    required String chapterId,
+    required int score,
+    required int total,
+  }) async {
+    final response = await ApiService.post('/progress', {
+      'chapterId': chapterId,
+      'score': score,
+      'total': total,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Failed to save progress');
+    }
+  }
 }

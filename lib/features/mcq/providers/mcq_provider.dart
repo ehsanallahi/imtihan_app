@@ -4,14 +4,18 @@ import '../models/mcq_model.dart';
 
 class McqProvider with ChangeNotifier {
   List<McqQuestion> _questions = [];
+  String? _currentChapterId;
   int _currentIndex = 0;
   Map<int, String> _userAnswers = {};
   bool _isFinished = false;
+  bool _isCurrentAnswerSubmitted = false;
 
   List<McqQuestion> get questions => _questions;
+  String? get currentChapterId => _currentChapterId;
   int get currentIndex => _currentIndex;
   Map<int, String> get userAnswers => _userAnswers;
   bool get isFinished => _isFinished;
+  bool get isCurrentAnswerSubmitted => _isCurrentAnswerSubmitted;
 
   McqQuestion? get currentQuestion => 
       _questions.isNotEmpty && _currentIndex < _questions.length 
@@ -22,7 +26,9 @@ class McqProvider with ChangeNotifier {
 
   Future<void> loadChapterQuestions(String chapterId) async {
     _questions = [];
+    _currentChapterId = chapterId;
     _isFinished = false;
+    _isCurrentAnswerSubmitted = false;
     notifyListeners();
     
     try {
@@ -38,20 +44,48 @@ class McqProvider with ChangeNotifier {
 
   void loadQuestions(List<McqQuestion> questions) {
     _questions = questions;
+    _currentChapterId = null; // Mock or manual load
     _currentIndex = 0;
     _userAnswers = {};
     _isFinished = false;
+    _isCurrentAnswerSubmitted = false;
     notifyListeners();
   }
 
   void selectOption(String optionId) {
+    if (_isCurrentAnswerSubmitted) return;
     _userAnswers[_currentIndex] = optionId;
     notifyListeners();
+  }
+
+  void submitAnswer() {
+    if (_userAnswers.containsKey(_currentIndex)) {
+      _isCurrentAnswerSubmitted = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> finishAndSaveResults() async {
+    _isFinished = true;
+    notifyListeners();
+    
+    if (_currentChapterId != null) {
+      try {
+        await ContentService.saveQuizResults(
+          chapterId: _currentChapterId!,
+          score: score,
+          total: _questions.length,
+        );
+      } catch (e) {
+        debugPrint('Failed to save progress: $e');
+      }
+    }
   }
 
   void nextQuestion() {
     if (_currentIndex < _questions.length - 1) {
       _currentIndex++;
+      _isCurrentAnswerSubmitted = false;
       notifyListeners();
     } else {
       _isFinished = true;
@@ -62,6 +96,8 @@ class McqProvider with ChangeNotifier {
   void previousQuestion() {
     if (_currentIndex > 0) {
       _currentIndex--;
+      // When going back, we might want to show the answer they previously submitted
+      _isCurrentAnswerSubmitted = _userAnswers.containsKey(_currentIndex);
       notifyListeners();
     }
   }
