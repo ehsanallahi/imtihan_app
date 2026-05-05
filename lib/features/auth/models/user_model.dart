@@ -44,7 +44,7 @@ class User {
 
 class UserStats {
   final int testsTaken;
-  final int averageAccuracy;
+  final double averageAccuracy;
   final int currentStreak;
 
   UserStats({
@@ -56,8 +56,8 @@ class UserStats {
   factory UserStats.fromJson(Map<String, dynamic> json) {
     return UserStats(
       testsTaken: json['testsTaken'] ?? 0,
-      averageAccuracy: json['averageAccuracy'] ?? 0,
-      currentStreak: json['currentStreak'] ?? 0,
+      averageAccuracy: (json['averageAccuracy'] ?? 0).toDouble(),
+      currentStreak: json['studyStreak'] ?? 0,
     );
   }
 }

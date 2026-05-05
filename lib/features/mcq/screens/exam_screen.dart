@@ -5,21 +5,33 @@ import '../providers/mcq_provider.dart';
 import '../providers/exam_provider.dart';
 import '../models/mcq_model.dart';
 import 'results_screen.dart';
+import '../../auth/providers/user_provider.dart';
 
 class ExamScreen extends StatelessWidget {
   const ExamScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // We use the existing McqProvider but in "Exam Mode"
-      ],
-      child: Consumer2<McqProvider, ExamProvider>(
+    return Consumer2<McqProvider, ExamProvider>(
         builder: (context, mcqProvider, examProvider, child) {
           final question = mcqProvider.currentQuestion;
           
           if (question == null) {
+            if (mcqProvider.questions.isEmpty && !mcqProvider.isFinished) {
+              return Scaffold(
+                appBar: AppBar(title: Text(examProvider.currentSession?.title ?? 'Exam')),
+                body: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.quiz_outlined, size: 64, color: AppColors.textSecondary),
+                      SizedBox(height: 16),
+                      Text('No questions found in this chapter.'),
+                    ],
+                  ),
+                ),
+              );
+            }
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
@@ -119,8 +131,7 @@ class ExamScreen extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
+      );
   }
 
   Widget _buildHeader(BuildContext context, McqProvider mcq, ExamProvider exam) {
@@ -280,6 +291,10 @@ class ExamScreen extends StatelessWidget {
   Future<void> _finishExam(BuildContext context, McqProvider mcq) async {
     await mcq.finishAndSaveResults();
     if (context.mounted) {
+      // Refresh statistics for realtime updates on home screen
+      Provider.of<UserProvider>(context, listen: false).fetchStats();
+      Provider.of<UserProvider>(context, listen: false).fetchRecentChapter();
+      
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ResultsScreen(isExam: true)),

@@ -5,6 +5,7 @@ import '../providers/mcq_provider.dart';
 import '../models/mcq_model.dart';
 import 'results_screen.dart';
 import '../../chat/screens/chat_screen.dart';
+import '../../auth/providers/user_provider.dart';
 
 class McqPracticeScreen extends StatelessWidget {
   const McqPracticeScreen({super.key});
@@ -246,6 +247,9 @@ class McqPracticeScreen extends StatelessWidget {
               if (provider.currentIndex == provider.questions.length - 1) {
                 await provider.finishAndSaveResults();
                 if (context.mounted) {
+                  // Refresh statistics for realtime updates on home screen
+                  Provider.of<UserProvider>(context, listen: false).fetchStats();
+                  Provider.of<UserProvider>(context, listen: false).fetchRecentChapter();
                   _showResults(context, provider);
                 }
               } else {

@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _StatItem(label: context.l10n('tests'), value: '${stats?.testsTaken ?? 0}'),
-                      _StatItem(label: context.l10n('correct'), value: '${stats?.averageAccuracy ?? 0}%'),
+                      _StatItem(label: context.l10n('correct'), value: '${stats?.averageAccuracy.toStringAsFixed(0) ?? 0}%'),
                       _StatItem(label: context.l10n('streak'), value: '${stats?.currentStreak ?? 0} ${context.l10n('days')}'),
                     ],
                   ),
