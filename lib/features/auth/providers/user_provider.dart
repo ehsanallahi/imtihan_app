@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../../core/services/api_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/content_service.dart';
 import '../../mcq/models/subject_model.dart';
@@ -20,9 +22,16 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final userData = await AuthService.getUser();
-      if (userData != null) {
+      final response = await ApiService.get('/users/me');
+      if (response.statusCode == 200) {
+        final userData = json.decode(response.body);
         _user = User.fromJson(userData);
+      } else {
+        // Fallback to local storage if API fails
+        final userData = await AuthService.getUser();
+        if (userData != null) {
+          _user = User.fromJson(userData);
+        }
       }
 
       await fetchStats();
@@ -59,5 +68,63 @@ class UserProvider with ChangeNotifier {
     _stats = null;
     _recentChapter = null;
     notifyListeners();
+  }
+
+  Future<bool> login(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final success = await AuthService.login(email, password);
+      if (success) {
+        await loadUserData();
+        return true;
+      }
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> register(Map<String, dynamic> data) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      // Data should include name, email, password, grade, board
+      final success = await AuthService.register(
+        data['name'], 
+        data['email'], 
+        data['password'],
+        grade: data['grade'],
+        board: data['board'],
+      );
+      return success;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
+  Future<bool> updateUser(Map<String, dynamic> data) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      debugPrint('UserProvider: Updating profile with $data');
+      final success = await AuthService.updateProfile(data);
+      debugPrint('UserProvider: Update success = $success');
+      if (success) {
+        await loadUserData(); // Refresh local state
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('UserProvider: Update error = $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

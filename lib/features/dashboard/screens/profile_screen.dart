@@ -6,6 +6,7 @@ import '../../auth/providers/user_provider.dart';
 import '../../auth/screens/welcome_screen.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/localization/app_localizations.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -21,6 +22,16 @@ class ProfileScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(context.l10n('profile')),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                  );
+                },
+                tooltip: 'Edit Profile',
+              ),
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () {},
