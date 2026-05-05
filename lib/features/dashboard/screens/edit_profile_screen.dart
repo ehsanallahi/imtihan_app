@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/providers/user_provider.dart';
@@ -16,9 +18,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   String? _selectedGrade;
   String? _selectedBoard;
+  String? _selectedMedium;
 
   final List<String> _grades = ['9', '10', '11', '12', 'MDCAT', 'ECAT'];
   final List<String> _boards = ['Punjab', 'Sindh', 'KPK', 'Federal', 'AKU'];
+  final List<String> _mediums = ['English', 'Urdu'];
 
   @override
   void initState() {
@@ -28,6 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: user?.email);
     _selectedGrade = user?.grade;
     _selectedBoard = user?.board;
+    _selectedMedium = user?.medium ?? 'English';
   }
 
   @override
@@ -35,6 +40,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 500,
+      maxHeight: 500,
+    );
+
+    if (pickedFile != null && mounted) {
+      final success = await context.read<UserProvider>().updateAvatar(pickedFile.path);
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile picture updated!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update profile picture.')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -45,6 +75,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: Consumer<UserProvider>(
         builder: (context, provider, child) {
+          final user = provider.user;
+          
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Form(
@@ -52,14 +84,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Update your information',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  // Avatar Section
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: AppColors.lightTeal,
+                          backgroundImage: user?.avatarUrl != null 
+                            ? NetworkImage(user!.avatarUrl!) 
+                            : null,
+                          child: user?.avatarUrl == null 
+                            ? const Icon(Icons.person, size: 60, color: AppColors.primaryTeal) 
+                            : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: provider.isLoading ? null : _pickImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: AppColors.primaryTeal,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                        if (provider.isLoading)
+                          const Positioned.fill(
+                            child: Center(
+                              child: CircularProgressIndicator(color: AppColors.primaryTeal),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 32),
+                  
+                  Text(
+                    'Personal Information',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
                   
                   // Name
                   TextFormField(
@@ -72,7 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 20),
                   
-                  // Email
+                  // Email (Disabled)
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -81,6 +150,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     enabled: false,
                     style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 32),
+                  
+                  Text(
+                    'Academic Preferences',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
                   
@@ -108,25 +183,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onChanged: (val) => setState(() => _selectedBoard = val),
                     validator: (value) => value == null ? 'Please select your board' : null,
                   ),
+                  const SizedBox(height: 20),
+
+                  // Medium Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedMedium,
+                    decoration: const InputDecoration(
+                      labelText: 'Study Medium',
+                      prefixIcon: Icon(Icons.language_outlined, color: AppColors.primaryTeal),
+                    ),
+                    items: _mediums.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                    onChanged: (val) => setState(() => _selectedMedium = val),
+                    validator: (value) => value == null ? 'Please select your medium' : null,
+                  ),
                   
                   const SizedBox(height: 48),
                   
-                  ElevatedButton(
-                    onPressed: provider.isLoading ? null : _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: provider.isLoading ? Colors.grey[300] : AppColors.primaryTeal,
-                      disabledBackgroundColor: Colors.grey[300],
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: provider.isLoading ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: provider.isLoading 
+                        ? const SizedBox(
+                            height: 24, 
+                            width: 24, 
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : const Text('Save Changes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
-                    child: provider.isLoading 
-                      ? const SizedBox(
-                          height: 24, 
-                          width: 24, 
-                          child: CircularProgressIndicator(
-                            color: Colors.white, 
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Text('Save Changes'),
                   ),
                 ],
               ),
@@ -140,9 +227,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final success = await context.read<UserProvider>().updateUser({
-        'name': _nameController.text,
+        'name': _nameController.text.trim(),
         'grade': _selectedGrade,
         'board': _selectedBoard,
+        'medium': _selectedMedium,
       });
 
       if (mounted) {
@@ -153,7 +241,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to update profile. Please check the debug console for details.')),
+            const SnackBar(content: Text('Failed to update profile.')),
           );
         }
       }

@@ -127,4 +127,24 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateAvatar(String filePath) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final avatarUrl = await AuthService.uploadAvatar(filePath);
+      if (avatarUrl != null) {
+        await loadUserData(); // Refresh to get updated user with new avatar
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('UserProvider: Avatar update error = $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
+

@@ -12,6 +12,8 @@ class AuthService {
         'password': password,
       });
 
+      debugPrint('Login response: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['token'];
@@ -22,8 +24,10 @@ class AuthService {
         
         return true;
       }
+      debugPrint('Login failed: ${response.statusCode} - ${response.body}');
       return false;
     } catch (e) {
+      debugPrint('Login error: $e');
       return false;
     }
   }
@@ -84,4 +88,19 @@ class AuthService {
       return false;
     }
   }
+
+  static Future<String?> uploadAvatar(String filePath) async {
+    try {
+      final response = await ApiService.multipartPost('/users/avatar', filePath);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['avatarUrl'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Avatar upload error: $e');
+      return null;
+    }
+  }
 }
+

@@ -2,15 +2,19 @@ class User {
   final String id;
   final String name;
   final String email;
+  final String? avatarUrl;
   final String? grade;
   final String? board;
+  final String? medium;
 
   User({
     required this.id,
     required this.name,
     required this.email,
+    this.avatarUrl,
     this.grade,
     this.board,
+    this.medium,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -18,8 +22,10 @@ class User {
       id: json['id'],
       name: json['name'],
       email: json['email'],
+      avatarUrl: json['avatar'],
       grade: json['grade'],
       board: json['board'],
+      medium: json['medium'],
     );
   }
 
@@ -28,8 +34,10 @@ class User {
       'id': id,
       'name': name,
       'email': email,
+      'avatar': avatarUrl,
       'grade': grade,
       'board': board,
+      'medium': medium,
     };
   }
 }

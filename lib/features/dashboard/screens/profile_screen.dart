@@ -7,6 +7,7 @@ import '../../auth/screens/welcome_screen.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import 'edit_profile_screen.dart';
+import 'dev_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -34,7 +35,12 @@ class ProfileScreen extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DevSettingsScreen()),
+                  );
+                },
               ),
             ],
           ),
@@ -43,11 +49,17 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
                 // Profile Header
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 50,
                   backgroundColor: AppColors.lightTeal,
-                  child: Icon(Icons.person, size: 50, color: AppColors.primaryTeal),
+                  backgroundImage: user?.avatarUrl != null 
+                    ? NetworkImage(user!.avatarUrl!) 
+                    : null,
+                  child: user?.avatarUrl == null 
+                    ? const Icon(Icons.person, size: 50, color: AppColors.primaryTeal)
+                    : null,
                 ),
+
                 const SizedBox(height: 16),
                 Text(
                   user?.name ?? 'Student',
