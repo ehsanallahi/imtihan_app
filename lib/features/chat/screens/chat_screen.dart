@@ -20,11 +20,14 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialMessage != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<ChatProvider>().sendMessage(widget.initialMessage!);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<ChatProvider>();
+      provider.loadHistory().then((_) {
+        if (widget.initialMessage != null) {
+          provider.sendMessage(widget.initialMessage!);
+        }
       });
-    }
+    });
   }
 
   void _scrollToBottom() {
@@ -72,24 +75,100 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Consumer<ChatProvider>(
               builder: (context, provider, child) {
+                if (provider.isLoadingHistory) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
                 _scrollToBottom();
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: provider.messages.length + (provider.isTyping ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == provider.messages.length && provider.isTyping) {
-                      return const _TypingIndicator();
-                    }
-                    final message = provider.messages[index];
-                    return _ChatBubble(message: message);
-                  },
+                return Stack(
+                  children: [
+                    ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: provider.messages.length + (provider.isTyping ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == provider.messages.length && provider.isTyping) {
+                          return const _TypingIndicator();
+                        }
+                        final message = provider.messages[index];
+                        return _ChatBubble(message: message);
+                      },
+                    ),
+                    if (provider.language == null)
+                      _buildLanguageSelection(context, provider),
+                  ],
                 );
               },
             ),
           ),
           _buildInputArea(context),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelection(BuildContext context, ChatProvider provider) {
+    return Container(
+      color: Colors.white.withOpacity(0.9),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.language_rounded, size: 48, color: AppColors.primaryTeal),
+              const SizedBox(height: 16),
+              const Text(
+                'Choose Your Language',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Selected language will be used for all conversations in this session.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => provider.setLanguage('english'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryTeal,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('English'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => provider.setLanguage('urdu'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGold,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('اردو (Urdu)'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

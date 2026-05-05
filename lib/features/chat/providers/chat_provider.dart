@@ -3,19 +3,65 @@ import '../models/chat_model.dart';
 import '../../../core/services/content_service.dart';
 
 class ChatProvider with ChangeNotifier {
-  final List<ChatMessage> _messages = [
-    ChatMessage(
-      id: '1',
-      text: "Hello! I'm your Imtihan AI Tutor powered by Groq. Ask me anything about your subjects, MCQs, or exam preparation!",
-      sender: MessageSender.ai,
-      timestamp: DateTime.now(),
-    ),
-  ];
-
+  final List<ChatMessage> _messages = [];
   bool _isTyping = false;
+  String? _language; // 'english' or 'urdu'
+  bool _isLoadingHistory = false;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isTyping => _isTyping;
+  String? get language => _language;
+  bool get isLoadingHistory => _isLoadingHistory;
+
+  ChatProvider() {
+    _initializeChat();
+  }
+
+  void _initializeChat() {
+    if (_messages.isEmpty) {
+      _messages.add(ChatMessage(
+        id: 'welcome',
+        text: "Hello! I'm your Imtihan AI Tutor. Ask me anything about your subjects, MCQs, or exam preparation!",
+        sender: MessageSender.ai,
+        timestamp: DateTime.now(),
+      ));
+    }
+  }
+
+  Future<void> loadHistory() async {
+    _isLoadingHistory = true;
+    notifyListeners();
+    try {
+      final history = await ContentService.fetchChatHistory();
+      final List msgs = history['messages'] ?? [];
+      _language = history['language'];
+      
+      if (msgs.isNotEmpty) {
+        _messages.clear();
+        for (var m in msgs) {
+          _messages.add(ChatMessage(
+            id: DateTime.now().toString() + m['content'].hashCode.toString(),
+            text: m['content'],
+            sender: m['role'] == 'user' ? MessageSender.user : MessageSender.ai,
+            timestamp: DateTime.now(),
+          ));
+        }
+      } else {
+        _initializeChat();
+      }
+    } catch (e) {
+      debugPrint('Error loading chat history: $e');
+      _initializeChat();
+    } finally {
+      _isLoadingHistory = false;
+      notifyListeners();
+    }
+  }
+
+  void setLanguage(String lang) {
+    _language = lang;
+    notifyListeners();
+  }
 
   void sendMessage(String text) {
     if (text.trim().isEmpty) return;
@@ -37,12 +83,7 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> _getAiResponse() async {
     try {
-      // Build conversation history for context (last 10 messages to keep it manageable)
-      final recentMessages = _messages
-          .where((m) => m.text.isNotEmpty)
-          .toList();
-      
-      // Take only last 10 messages for context window
+      final recentMessages = _messages.where((m) => m.text.isNotEmpty).toList();
       final contextMessages = recentMessages.length > 10 
           ? recentMessages.sublist(recentMessages.length - 10) 
           : recentMessages;
@@ -52,7 +93,7 @@ class ChatProvider with ChangeNotifier {
         'content': m.text,
       }).toList();
 
-      final response = await ContentService.chatWithAi(chatHistory);
+      final response = await ContentService.chatWithAi(chatHistory, language: _language ?? 'english');
 
       final aiMessage = ChatMessage(
         id: DateTime.now().toString(),
@@ -78,12 +119,7 @@ class ChatProvider with ChangeNotifier {
 
   void clearChat() {
     _messages.clear();
-    _messages.add(ChatMessage(
-      id: '1',
-      text: "Hello! I'm your Imtihan AI Tutor powered by Groq. Ask me anything about your subjects, MCQs, or exam preparation!",
-      sender: MessageSender.ai,
-      timestamp: DateTime.now(),
-    ));
+    _initializeChat();
     notifyListeners();
   }
 }
