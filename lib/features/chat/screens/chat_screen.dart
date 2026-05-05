@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/chat_provider.dart';
 import '../models/chat_model.dart';
@@ -339,26 +340,38 @@ class _ChatBubble extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isAi ? Colors.grey[100] : AppColors.primaryTeal,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isAi ? 0 : 16),
-                  bottomRight: Radius.circular(isAi ? 16 : 0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isAi ? Colors.grey[100] : AppColors.primaryTeal,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(16),
+                    topRight: const Radius.circular(16),
+                    bottomLeft: Radius.circular(isAi ? 0 : 16),
+                    bottomRight: Radius.circular(isAi ? 16 : 0),
+                  ),
                 ),
+                child: isAi 
+                  ? MarkdownBody(
+                      data: message.text,
+                      styleSheet: MarkdownStyleSheet(
+                        p: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          height: 1.4,
+                        ),
+                        strong: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : SelectableText(
+                      message.text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                    ),
               ),
-              child: SelectableText(
-                message.text,
-                style: TextStyle(
-                  color: isAi ? AppColors.textPrimary : Colors.white,
-                  fontSize: 15,
-                  height: 1.4,
-                ),
-              ),
-            ),
           ),
           if (!isAi) ...[
             const SizedBox(width: 8),
