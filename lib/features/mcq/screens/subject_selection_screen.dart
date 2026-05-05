@@ -6,7 +6,8 @@ import '../models/subject_model.dart';
 import 'chapter_selection_screen.dart';
 
 class SubjectSelectionScreen extends StatefulWidget {
-  const SubjectSelectionScreen({super.key});
+  final bool isExamMode;
+  const SubjectSelectionScreen({super.key, this.isExamMode = false});
 
   @override
   State<SubjectSelectionScreen> createState() => _SubjectSelectionScreenState();
@@ -25,7 +26,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Subject'),
+        title: Text(widget.isExamMode ? 'Select Subject — Mock Exam' : 'Select Subject'),
       ),
       body: Consumer<SubjectProvider>(
         builder: (context, provider, child) {
@@ -48,7 +49,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
             itemCount: provider.subjects.length,
             itemBuilder: (context, index) {
               final subject = provider.subjects[index];
-              return _SubjectCard(subject: subject);
+              return _SubjectCard(subject: subject, isExamMode: widget.isExamMode);
             },
           );
         },
@@ -59,8 +60,9 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
 class _SubjectCard extends StatelessWidget {
   final Subject subject;
+  final bool isExamMode;
 
-  const _SubjectCard({required this.subject});
+  const _SubjectCard({required this.subject, this.isExamMode = false});
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +71,10 @@ class _SubjectCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChapterSelectionScreen(subject: subject),
+            builder: (context) => ChapterSelectionScreen(
+              subject: subject,
+              isExamMode: isExamMode,
+            ),
           ),
         );
       },
@@ -78,7 +83,7 @@ class _SubjectCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: isExamMode ? AppColors.primaryCrimson.withOpacity(0.3) : AppColors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),
@@ -117,3 +122,4 @@ class _SubjectCard extends StatelessWidget {
     );
   }
 }
+

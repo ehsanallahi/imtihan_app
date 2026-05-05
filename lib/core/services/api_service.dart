@@ -46,7 +46,9 @@ class ApiService {
     final url = Uri.parse('$base$endpoint');
     final headers = await _getHeaders();
     debugPrint('ApiService GET: $url');
-    return await http.get(url, headers: headers).timeout(const Duration(seconds: 10));
+    final response = await http.get(url, headers: headers).timeout(const Duration(seconds: 10));
+    debugPrint('ApiService GET Response [${response.statusCode}]: ${response.body}');
+    return response;
   }
 
   static Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
@@ -54,7 +56,9 @@ class ApiService {
     final url = Uri.parse('$base$endpoint');
     final headers = await _getHeaders();
     debugPrint('ApiService POST: $url');
-    return await http.post(url, headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 10));
+    final response = await http.post(url, headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 10));
+    debugPrint('ApiService POST Response [${response.statusCode}]: ${response.body}');
+    return response;
   }
 
   static Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {

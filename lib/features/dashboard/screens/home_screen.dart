@@ -7,6 +7,7 @@ import '../../mcq/screens/mcq_practice_screen.dart';
 import '../../auth/providers/user_provider.dart';
 import '../../../core/services/content_service.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../chat/screens/chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -64,7 +65,12 @@ class HomeScreen extends StatelessWidget {
                   subtitle: 'Ask questions about any topic',
                   icon: Icons.psychology_rounded,
                   color: AppColors.primaryGold,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ChatScreen()),
+                    );
+                  },
                 ),
                 
                 const SizedBox(height: 32),

@@ -4,18 +4,23 @@ import '../../../core/theme/app_theme.dart';
 import '../models/subject_model.dart';
 import '../models/mcq_model.dart';
 import '../providers/mcq_provider.dart';
+import '../providers/exam_provider.dart';
 import 'mcq_practice_screen.dart';
+import 'exam_screen.dart';
 
 class ChapterSelectionScreen extends StatelessWidget {
   final Subject subject;
+  final bool isExamMode;
 
-  const ChapterSelectionScreen({super.key, required this.subject});
+  const ChapterSelectionScreen({super.key, required this.subject, this.isExamMode = false});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${subject.name} Chapters'),
+        title: Text(isExamMode 
+          ? '${subject.name} — Mock Exam' 
+          : '${subject.name} Chapters'),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(20),
@@ -35,8 +40,13 @@ class ChapterSelectionScreen extends StatelessWidget {
                 chapter.name,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text('${chapter.questionCount} Questions'),
-              trailing: const Icon(Icons.play_circle_outline, color: AppColors.primaryTeal),
+              subtitle: Text(isExamMode 
+                ? '${chapter.questionCount} Questions • Timed'
+                : '${chapter.questionCount} Questions'),
+              trailing: Icon(
+                isExamMode ? Icons.timer_outlined : Icons.play_circle_outline, 
+                color: isExamMode ? AppColors.primaryCrimson : AppColors.primaryTeal,
+              ),
               onTap: () => _startPractice(context, chapter),
             ),
           );
@@ -59,10 +69,22 @@ class ChapterSelectionScreen extends StatelessWidget {
       await provider.loadChapterQuestions(chapter.id);
       if (context.mounted) {
         Navigator.pop(context); // Close loading dialog
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
-        );
+        
+        if (isExamMode) {
+          // Start timed exam mode
+          final examProvider = Provider.of<ExamProvider>(context, listen: false);
+          provider.setCurrentChapter(chapter.id);
+          examProvider.startExam(chapter.id, chapter.name, 20); // 20 min timed exam
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ExamScreen()),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -74,3 +96,4 @@ class ChapterSelectionScreen extends StatelessWidget {
     }
   }
 }
+

@@ -8,8 +8,21 @@ import '../../mcq/providers/mcq_provider.dart';
 import '../../mcq/screens/exam_screen.dart';
 import '../../../core/services/content_service.dart';
 
-class PastPaperListScreen extends StatelessWidget {
+class PastPaperListScreen extends StatefulWidget {
   const PastPaperListScreen({super.key});
+
+  @override
+  State<PastPaperListScreen> createState() => _PastPaperListScreenState();
+}
+
+class _PastPaperListScreenState extends State<PastPaperListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PastPaperProvider>().loadPapers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +36,10 @@ class PastPaperListScreen extends StatelessWidget {
           Expanded(
             child: Consumer<PastPaperProvider>(
               builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
                 final papers = provider.filteredPapers;
 
                 if (papers.isEmpty) {

@@ -119,4 +119,16 @@ class ContentService {
     }
     throw Exception('Failed to load paper questions');
   }
+
+  static Future<String> chatWithAi(List<Map<String, String>> messages) async {
+    final response = await ApiService.post('/ai/tutor', {
+      'messages': messages,
+    });
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['message'] ?? 'No response from AI.';
+    }
+    throw Exception('Failed to reach AI Tutor');
+  }
 }

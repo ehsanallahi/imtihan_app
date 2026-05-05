@@ -17,10 +17,10 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentUrl();
+    _loadSettings();
   }
 
-  Future<void> _loadCurrentUrl() async {
+  Future<void> _loadSettings() async {
     final url = await ApiService.getBaseUrl();
     setState(() {
       _currentUrl = url;
@@ -41,7 +41,7 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
       appBar: AppBar(title: const Text('Developer Settings')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,14 +84,18 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
                             }
                           },
                           icon: const Icon(Icons.save),
-                          label: const Text('Save'),
+                          label: const Text('Save URL'),
                         ),
                       ),
                       const SizedBox(width: 12),
                       OutlinedButton.icon(
                         onPressed: () async {
                           await ApiService.resetBaseUrl();
-                          await _loadCurrentUrl();
+                          final url = await ApiService.getBaseUrl();
+                          setState(() {
+                            _currentUrl = url;
+                            _urlController.text = url;
+                          });
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Reset to default URL')),
@@ -136,6 +140,7 @@ class _DevSettingsScreenState extends State<DevSettingsScreen> {
     );
   }
 }
+
 
 class _QuickConnectTile extends StatelessWidget {
   final String title;

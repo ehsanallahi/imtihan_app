@@ -50,7 +50,12 @@ class PracticeHubScreen extends StatelessWidget {
               subtitle: 'Full-length timed exams for final revision',
               icon: Icons.timer_outlined,
               color: AppColors.primaryCrimson,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SubjectSelectionScreen(isExamMode: true)),
+                );
+              },
             ),
           ],
         ),
