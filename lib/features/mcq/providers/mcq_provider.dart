@@ -13,6 +13,7 @@ class McqProvider with ChangeNotifier {
 
   List<McqQuestion> get questions => _questions;
   String? get currentChapterId => _currentChapterId;
+  String? get currentSessionId => _currentSessionId;
   int get currentIndex => _currentIndex;
   Map<int, String> get userAnswers => _userAnswers;
   bool get isFinished => _isFinished;
@@ -114,6 +115,13 @@ class McqProvider with ChangeNotifier {
 
   void setCurrentChapter(String chapterId) {
     _currentChapterId = chapterId;
+    _currentSessionId = null;
+    notifyListeners();
+  }
+
+  void setCurrentSession(String sessionId) {
+    _currentSessionId = sessionId;
+    _currentChapterId = null;
     notifyListeners();
   }
 

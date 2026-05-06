@@ -2,10 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/mcq_provider.dart';
+import '../../../core/services/content_service.dart';
 
-class ResultsScreen extends StatelessWidget {
+class ResultsScreen extends StatefulWidget {
   final bool isExam;
   const ResultsScreen({super.key, this.isExam = false});
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+  String? _aiAnalysis;
+  bool _isLoadingAnalysis = false;
+
+  Future<void> _getAiAnalysis() async {
+    setState(() => _isLoadingAnalysis = true);
+    try {
+      final provider = context.read<McqProvider>();
+      // Use the session ID if available, otherwise we can't analyze (should have one)
+      final sessionId = provider.currentSessionId; 
+      if (sessionId == null) {
+        throw Exception('No session ID found for analysis');
+      }
+      
+      final analysis = await ContentService.analyzePerformance(sessionId);
+      setState(() => _aiAnalysis = analysis);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error getting AI analysis: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingAnalysis = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +50,7 @@ class ResultsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isExam ? 'Exam Results' : 'Practice Results'),
+        title: Text(widget.isExam ? 'Exam Results' : 'Practice Results'),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -27,12 +61,76 @@ class ResultsScreen extends StatelessWidget {
               _buildScoreCircle(context, percentage, score, total),
               const SizedBox(height: 32),
               _buildStatsRow(context, provider),
+              const SizedBox(height: 24),
+              _buildAiAnalysisSection(),
               const SizedBox(height: 40),
               _buildActionButtons(context),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAiAnalysisSection() {
+    if (_aiAnalysis != null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.primaryTeal.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.primaryTeal.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.psychology_rounded, color: AppColors.primaryTeal),
+                const SizedBox(width: 12),
+                Text(
+                  'AI Performance Analysis',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.primaryTeal,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _aiAnalysis!,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        if (_isLoadingAnalysis)
+          const Column(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('AI is analyzing your performance...'),
+            ],
+          )
+        else
+          OutlinedButton.icon(
+            onPressed: _getAiAnalysis,
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text('Analyze Performance with AI'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              side: const BorderSide(color: AppColors.primaryTeal),
+              foregroundColor: AppColors.primaryTeal,
+            ),
+          ),
+      ],
     );
   }
 
@@ -66,6 +164,7 @@ class ResultsScreen extends StatelessWidget {
               ),
             ),
             Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '$percentage%',

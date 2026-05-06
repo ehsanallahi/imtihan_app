@@ -213,7 +213,6 @@ class HomeScreen extends StatelessWidget {
   void _startPractice(BuildContext context) {
     // This is now replaced by _resumeChapter or handled by the Practice Hub navigation
   }
-}
 
   Future<void> _startReviewSession(BuildContext context) async {
     final mcqProvider = Provider.of<McqProvider>(context, listen: false);

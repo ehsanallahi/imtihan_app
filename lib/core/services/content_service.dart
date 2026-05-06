@@ -162,4 +162,13 @@ class ContentService {
     }
     return null;
   }
+
+  static Future<String> analyzePerformance(String sessionId) async {
+    final response = await ApiService.post('/ai/analyze', {'sessionId': sessionId});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['analysis'];
+    }
+    throw Exception('Failed to analyze performance');
+  }
 }
