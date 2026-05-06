@@ -81,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _buildStatCard(context.l10n('tests'), '${stats?.testsTaken ?? 0}'),
                       const SizedBox(width: 16),
-                      _buildStatCard(context.l10n('correct'), '${stats?.averageAccuracy ?? 0}%'),
+                      _buildStatCard(context.l10n('correct'), '${stats?.averageAccuracy?.toStringAsFixed(0) ?? 0}%'),
                     ],
                   ),
                 ),
@@ -208,7 +208,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildHistoryStat('Tests Taken', '${stats?.testsTaken ?? 0}', Icons.assignment_turned_in_outlined),
             const Divider(height: 24),
-            _buildHistoryStat('Average Accuracy', '${stats?.averageAccuracy ?? 0}%', Icons.track_changes),
+            _buildHistoryStat('Average Accuracy', '${stats?.averageAccuracy?.toStringAsFixed(0) ?? 0}%', Icons.track_changes),
             const Divider(height: 24),
             _buildHistoryStat('Current Streak', '${stats?.currentStreak ?? 0} days', Icons.local_fire_department_outlined),
             const SizedBox(height: 16),
@@ -223,8 +223,14 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.primaryTeal, size: 20),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-        const Spacer(),
+        Expanded(
+          child: Text(
+            label, 
+            style: const TextStyle(color: AppColors.textSecondary),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
         Text(
           value,
           style: const TextStyle(
