@@ -73,6 +73,19 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 
+                const SizedBox(height: 16),
+                
+                _buildActionCard(
+                  context,
+                  title: 'Daily Review',
+                  subtitle: 'Master your weak topics',
+                  icon: Icons.rebase_edit,
+                  color: const Color(0xFF6366F1), // Indigo
+                  onTap: () {
+                    _startReviewSession(context);
+                  },
+                ),
+                
                 const SizedBox(height: 32),
                 Text(
                   context.l10n('recent_progress'),
@@ -199,6 +212,50 @@ class HomeScreen extends StatelessWidget {
 
   void _startPractice(BuildContext context) {
     // This is now replaced by _resumeChapter or handled by the Practice Hub navigation
+  }
+}
+
+  Future<void> _startReviewSession(BuildContext context) async {
+    final mcqProvider = Provider.of<McqProvider>(context, listen: false);
+    
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final sessionId = await ContentService.startReviewSession();
+      if (sessionId != null) {
+        // Fetch questions for this review session
+        final questions = await ContentService.fetchChapterMcqs(null, sessionId: sessionId);
+        mcqProvider.loadQuestions(questions);
+        mcqProvider.setCurrentSession(sessionId);
+        
+        if (context.mounted) {
+          Navigator.pop(context); // Remove loading
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const McqPracticeScreen()),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          Navigator.pop(context); // Remove loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No reviews due right now!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Remove loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error starting review: $e')),
+        );
+      }
+    }
   }
 }
 

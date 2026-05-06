@@ -77,6 +77,16 @@ class ApiService {
     return await http.patch(url, headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 10));
   }
 
+  static Future<http.Response> delete(String endpoint) async {
+    final base = await getBaseUrl();
+    final url = Uri.parse('$base$endpoint');
+    final headers = await _getHeaders();
+    debugPrint('ApiService DELETE: $url');
+    final response = await http.delete(url, headers: headers).timeout(const Duration(seconds: 10));
+    debugPrint('ApiService DELETE Response [${response.statusCode}]: ${response.body}');
+    return response;
+  }
+
   static Future<http.Response> multipartPost(String endpoint, String filePath) async {
     final base = await getBaseUrl();
     final url = Uri.parse('$base$endpoint');

@@ -25,8 +25,12 @@ class ContentService {
     throw Exception('Failed to load subjects');
   }
 
-  static Future<List<McqQuestion>> fetchChapterMcqs(String chapterId) async {
-    final response = await ApiService.get('/chapters/$chapterId/mcqs');
+  static Future<List<McqQuestion>> fetchChapterMcqs(String? chapterId, {String? sessionId}) async {
+    final endpoint = sessionId != null 
+        ? '/quiz/questions?sessionId=$sessionId'
+        : '/chapters/$chapterId/mcqs';
+        
+    final response = await ApiService.get(endpoint);
     if (response.statusCode == 200) {
       List data = jsonDecode(response.body);
       return data.map((json) => McqQuestion(
@@ -46,12 +50,14 @@ class ContentService {
   }
 
   static Future<void> saveQuizResults({
-    required String chapterId,
+    String? chapterId,
+    String? sessionId,
     required int score,
     required int total,
   }) async {
-    final response = await ApiService.post('/progress', {
+    final response = await ApiService.post('/quiz/submit', {
       'chapterId': chapterId,
+      'sessionId': sessionId,
       'score': score,
       'total': total,
       'timestamp': DateTime.now().toIso8601String(),
@@ -139,5 +145,21 @@ class ContentService {
       return jsonDecode(response.body);
     }
     return {'messages': [], 'language': 'english'};
+  }
+
+  static Future<void> clearChatHistory() async {
+    final response = await ApiService.delete('/ai/tutor/history');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to clear chat history');
+    }
+  }
+
+  static Future<String?> startReviewSession() async {
+    final response = await ApiService.post('/quiz/review', {});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['sessionId'];
+    }
+    return null;
   }
 }

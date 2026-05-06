@@ -5,6 +5,7 @@ import '../models/mcq_model.dart';
 class McqProvider with ChangeNotifier {
   List<McqQuestion> _questions = [];
   String? _currentChapterId;
+  String? _currentSessionId;
   int _currentIndex = 0;
   Map<int, String> _userAnswers = {};
   bool _isFinished = false;
@@ -69,10 +70,11 @@ class McqProvider with ChangeNotifier {
     _isFinished = true;
     notifyListeners();
     
-    if (_currentChapterId != null) {
+    if (_currentChapterId != null || _currentSessionId != null) {
       try {
         await ContentService.saveQuizResults(
-          chapterId: _currentChapterId!,
+          chapterId: _currentChapterId,
+          sessionId: _currentSessionId,
           score: score,
           total: _questions.length,
         );

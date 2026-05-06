@@ -119,9 +119,18 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  void clearChat() {
-    _messages.clear();
-    _initializeChat();
-    notifyListeners();
+  Future<void> clearChat() async {
+    try {
+      await ContentService.clearChatHistory();
+      _messages.clear();
+      _initializeChat();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error clearing chat: $e');
+      // Still clear locally even if server fails, or show error
+      _messages.clear();
+      _initializeChat();
+      notifyListeners();
+    }
   }
 }
