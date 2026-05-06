@@ -203,17 +203,34 @@ class _ChatScreenState extends State<ChatScreen> {
           child: SafeArea(
             child: Row(
               children: [
+                IconButton(
+                  icon: Icon(
+                    provider.isListening ? Icons.mic : Icons.mic_none,
+                    color: provider.isListening ? Colors.red : AppColors.primaryTeal,
+                  ),
+                  onPressed: () {
+                    if (provider.isListening) {
+                      provider.stopListening().then((text) {
+                        if (text.isNotEmpty) {
+                          _controller.text = text;
+                        }
+                      });
+                    } else {
+                      provider.startListening();
+                    }
+                  },
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: provider.isTyping ? 'AI is thinking...' : 'Ask me anything...',
+                      hintText: provider.isListening ? 'Listening...' : (provider.isTyping ? 'AI is thinking...' : 'Ask me anything...'),
                       fillColor: Colors.grey[100],
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
                     enabled: !provider.isTyping,
                     onSubmitted: (value) {
-                      if (!provider.isTyping) {
+                      if (!provider.isTyping && value.isNotEmpty) {
                         context.read<ChatProvider>().sendMessage(value);
                         _controller.clear();
                       }

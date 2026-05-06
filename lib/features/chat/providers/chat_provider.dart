@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_tts/flutter_tts.dart';
 import '../models/chat_model.dart';
 import '../../../core/services/content_service.dart';
 
 class ChatProvider with ChangeNotifier {
-  final List<ChatMessage> _messages = [];
+  List<ChatMessage> _messages = [];
+  List<Map<String, dynamic>> _sessions = [];
+  String? _currentSessionId;
+  bool _isLoading = false;
+  String _currentLanguage = 'english';
   bool _isTyping = false;
-  String? _language; // 'english' or 'urdu'
-  bool _isLoadingHistory = false;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
+  List<Map<String, dynamic>> get sessions => _sessions;
+  String? get currentSessionId => _currentSessionId;
+  bool get isLoading => _isLoading;
+  String get currentLanguage => _currentLanguage;
   bool get isTyping => _isTyping;
-  String? get language => _language;
-  bool get isLoadingHistory => _isLoadingHistory;
 
   ChatProvider() {
+    fetchSessions();
     _initializeChat();
   }
 
@@ -28,15 +35,27 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadHistory() async {
-    _isLoadingHistory = true;
-    notifyListeners();
+  Future<void> fetchSessions() async {
     try {
-      final history = await ContentService.fetchChatHistory();
-      final List msgs = history['messages'] ?? [];
-      _language = history['language'];
+      final data = await ContentService.fetchChatSessions();
+      _sessions = List<Map<String, dynamic>>.from(data['sessions']);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching sessions: $e');
+    }
+  }
+
+  Future<void> loadSession(String sessionId) async {
+    _currentSessionId = sessionId;
+    _isLoading = true;
+    _messages = [];
+    notifyListeners();
+
+    try {
+      final data = await ContentService.fetchChatHistory(sessionId: sessionId);
+      final List msgs = data['messages'] ?? [];
+      _currentLanguage = data['language'] ?? 'english';
       
-      _messages.clear();
       if (msgs.isNotEmpty) {
         for (var m in msgs) {
           _messages.add(ChatMessage(
@@ -127,10 +146,53 @@ class ChatProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error clearing chat: $e');
-      // Still clear locally even if server fails, or show error
       _messages.clear();
       _initializeChat();
       notifyListeners();
     }
+  }
+
+  // --- Voice Chat Logic ---
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  final FlutterTts _tts = FlutterTts();
+  bool _isListening = false;
+  String _recognizedText = "";
+
+  bool get isListening => _isListening;
+  String get recognizedText => _recognizedText;
+
+  Future<void> startListening() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) => debugPrint('STT Status: $status'),
+      onError: (error) => debugPrint('STT Error: $error'),
+    );
+
+    if (available) {
+      _isListening = true;
+      notifyListeners();
+      _speech.listen(
+        onResult: (result) {
+          _recognizedText = result.recognizedWords;
+          notifyListeners();
+        },
+        localeId: _currentLanguage == 'urdu' ? 'ur_PK' : 'en_US',
+      );
+    }
+  }
+
+  Future<void> stopListening() async {
+    await _speech.stop();
+    _isListening = false;
+    notifyListeners();
+  }
+
+  Future<void> speak(String text) async {
+    await _tts.setLanguage(_currentLanguage == 'urdu' ? 'ur-PK' : 'en-US');
+    await _tts.setPitch(1.0);
+    await _tts.speak(text);
+  }
+
+  Future<void> stopSpeaking() async {
+    await _tts.stop();
   }
 }

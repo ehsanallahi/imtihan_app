@@ -139,12 +139,29 @@ class ContentService {
     throw Exception('Failed to reach AI Tutor');
   }
 
-  static Future<Map<String, dynamic>> fetchChatHistory() async {
-    final response = await ApiService.get('/ai/tutor/history');
+  static Future<Map<String, dynamic>> fetchChatHistory({String? sessionId}) async {
+    final endpoint = sessionId != null ? '/ai/tutor/history?chatId=$sessionId' : '/ai/tutor/history';
+    final response = await ApiService.get(endpoint);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
     return {'messages': [], 'language': 'english'};
+  }
+
+  static Future<Map<String, dynamic>> fetchChatSessions() async {
+    final response = await ApiService.get('/ai/tutor/sessions');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return {'sessions': []};
+  }
+
+  static Future<Map<String, dynamic>> createNewChat(String language) async {
+    final response = await ApiService.post('/ai/tutor/sessions', {'language': language});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Failed to create new chat session');
   }
 
   static Future<void> clearChatHistory() async {
