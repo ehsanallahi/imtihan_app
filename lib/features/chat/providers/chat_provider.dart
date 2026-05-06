@@ -36,13 +36,15 @@ class ChatProvider with ChangeNotifier {
       final List msgs = history['messages'] ?? [];
       _language = history['language'];
       
+      _messages.clear();
       if (msgs.isNotEmpty) {
-        _messages.clear();
         for (var m in msgs) {
           _messages.add(ChatMessage(
             id: DateTime.now().toString() + m['content'].hashCode.toString(),
             text: m['content'],
-            sender: m['role'] == 'user' ? MessageSender.user : MessageSender.ai,
+            sender: (m['role'] == 'user' || m['role'] == 'student') 
+                ? MessageSender.user 
+                : MessageSender.ai,
             timestamp: DateTime.now(),
           ));
         }

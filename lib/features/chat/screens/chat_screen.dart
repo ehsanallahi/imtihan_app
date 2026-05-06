@@ -24,7 +24,8 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<ChatProvider>();
       provider.loadHistory().then((_) {
-        if (widget.initialMessage != null) {
+        // Only send initial message if language is already known (from history)
+        if (widget.initialMessage != null && provider.language != null) {
           provider.sendMessage(widget.initialMessage!);
         }
       });
@@ -146,7 +147,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => provider.setLanguage('english'),
+                      onPressed: () {
+                        provider.setLanguage('english');
+                        if (widget.initialMessage != null) {
+                          provider.sendMessage(widget.initialMessage!);
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryTeal,
                         foregroundColor: Colors.white,
@@ -157,7 +163,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => provider.setLanguage('urdu'),
+                      onPressed: () {
+                        provider.setLanguage('urdu');
+                        if (widget.initialMessage != null) {
+                          provider.sendMessage(widget.initialMessage!);
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGold,
                         foregroundColor: Colors.white,

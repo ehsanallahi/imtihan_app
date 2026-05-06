@@ -267,11 +267,25 @@ class McqPracticeScreen extends StatelessWidget {
   }
 
   void _openAiTutor(BuildContext context, McqQuestion question) {
+    final contextMessage = '''
+I need help with this MCQ:
+Question: ${question.questionText}
+Options:
+A) ${question.options[0].text}
+B) ${question.options[1].text}
+C) ${question.options[2].text}
+D) ${question.options[3].text}
+
+Correct Answer: ${question.correctAnswerId}
+${question.explanation != null ? 'Explanation: ${question.explanation}' : ''}
+
+Please explain the concept behind this question.''';
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatScreen(
-          initialMessage: 'I need help with this question: "${question.questionText}"',
+          initialMessage: contextMessage,
         ),
       ),
     );
