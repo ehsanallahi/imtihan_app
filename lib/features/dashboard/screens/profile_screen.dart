@@ -8,7 +8,6 @@ import '../../auth/screens/welcome_screen.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import 'edit_profile_screen.dart';
-import 'dev_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -33,15 +32,6 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
                 tooltip: 'Edit Profile',
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DevSettingsScreen()),
-                  );
-                },
               ),
             ],
           ),
