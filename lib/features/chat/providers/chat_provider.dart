@@ -109,7 +109,7 @@ class ChatProvider with ChangeNotifier {
       debugPrint('ChatProvider error: $e');
       _messages.add(ChatMessage(
         id: DateTime.now().toString(),
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: 'Too many students are chatting now, please try later.',
         sender: MessageSender.ai,
         timestamp: DateTime.now(),
       ));
