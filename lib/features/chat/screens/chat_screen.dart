@@ -23,12 +23,10 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<ChatProvider>();
-      provider.loadHistory().then((_) {
-        // Only send initial message if language is already known (from history)
-        if (widget.initialMessage != null && provider.language != null) {
-          provider.sendMessage(widget.initialMessage!);
-        }
-      });
+      // Only send initial message if language is already known
+      if (widget.initialMessage != null && provider.language != null) {
+        provider.sendMessage(widget.initialMessage!);
+      }
     });
   }
 
@@ -210,9 +208,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   onPressed: () {
                     if (provider.isListening) {
-                      provider.stopListening().then((text) {
-                        if (text.isNotEmpty) {
-                          _controller.text = text;
+                      provider.stopListening().then((_) {
+                        if (provider.recognizedText.isNotEmpty) {
+                          _controller.text = provider.recognizedText;
                         }
                       });
                     } else {
@@ -379,26 +377,62 @@ class _ChatBubble extends StatelessWidget {
                     bottomRight: Radius.circular(isAi ? 16 : 0),
                   ),
                 ),
-                child: isAi 
-                  ? MarkdownBody(
-                      data: message.text,
-                      styleSheet: MarkdownStyleSheet(
-                        p: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          height: 1.4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    isAi 
+                      ? MarkdownBody(
+                          data: message.text,
+                          styleSheet: MarkdownStyleSheet(
+                            p: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 15,
+                              height: 1.4,
+                            ),
+                            strong: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      : SelectableText(
+                          message.text,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.4,
+                          ),
                         ),
-                        strong: const TextStyle(fontWeight: FontWeight.bold),
+                    if (isAi) ...[
+                      const SizedBox(height: 8),
+                      Consumer<ChatProvider>(
+                        builder: (context, provider, child) {
+                          final isSpeaking = provider.currentlySpeakingMessageId == message.id;
+                          return GestureDetector(
+                            onTap: () => provider.speak(message.id, message.text),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isSpeaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined,
+                                  size: 16,
+                                  color: isSpeaking ? Colors.red : AppColors.primaryTeal,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isSpeaking ? 'Stop' : 'Listen',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isSpeaking ? Colors.red : AppColors.primaryTeal,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    )
-                  : SelectableText(
-                      message.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.4,
-                      ),
-                    ),
+                    ],
+                  ],
+                ),
               ),
           ),
           if (!isAi) ...[

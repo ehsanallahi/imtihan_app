@@ -126,15 +126,16 @@ class ContentService {
     throw Exception('Failed to load paper questions');
   }
 
-  static Future<String> chatWithAi(List<Map<String, String>> messages, {String language = 'english'}) async {
+  static Future<String> chatWithAi(List<Map<String, dynamic>> messages, {String language = 'english', String? chatId}) async {
     final response = await ApiService.post('/ai/tutor', {
       'messages': messages,
       'language': language,
+      'chatId': chatId,
     });
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['message'] ?? 'No response from AI.';
+      return data['response'] ?? 'No response from AI.';
     }
     throw Exception('Failed to reach AI Tutor');
   }

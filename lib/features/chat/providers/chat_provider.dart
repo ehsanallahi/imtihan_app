@@ -11,13 +11,17 @@ class ChatProvider with ChangeNotifier {
   bool _isLoading = false;
   String _currentLanguage = 'english';
   bool _isTyping = false;
+  String? _currentlySpeakingMessageId;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   List<Map<String, dynamic>> get sessions => _sessions;
   String? get currentSessionId => _currentSessionId;
   bool get isLoading => _isLoading;
+  bool get isLoadingHistory => _isLoading; // Alias
   String get currentLanguage => _currentLanguage;
+  String? get language => _currentLanguage; // Alias
   bool get isTyping => _isTyping;
+  String? get currentlySpeakingMessageId => _currentlySpeakingMessageId;
 
   ChatProvider() {
     fetchSessions();
@@ -43,6 +47,11 @@ class ChatProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Error fetching sessions: $e');
     }
+  }
+
+  void setLanguage(String lang) {
+    _currentLanguage = lang;
+    notifyListeners();
   }
 
   Future<void> loadSession(String sessionId) async {
@@ -74,58 +83,57 @@ class ChatProvider with ChangeNotifier {
       debugPrint('Error loading chat history: $e');
       _initializeChat();
     } finally {
-      _isLoadingHistory = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  void setLanguage(String lang) {
-    _language = lang;
-    notifyListeners();
+  Future<void> createNewChat(String language) async {
+    try {
+      final data = await ContentService.createNewChat(language);
+      final newSession = data['session'];
+      _currentSessionId = newSession['id'];
+      _messages = [];
+      _currentLanguage = language;
+      await fetchSessions();
+      _initializeChat();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error creating new chat: $e');
+    }
   }
 
-  void sendMessage(String text) {
+  Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
-
-    final userMessage = ChatMessage(
+    
+    // Add student message
+    _messages.add(ChatMessage(
       id: DateTime.now().toString(),
       text: text,
       sender: MessageSender.user,
       timestamp: DateTime.now(),
-    );
-
-    _messages.add(userMessage);
+    ));
     _isTyping = true;
     notifyListeners();
 
-    // Call Groq API
-    _getAiResponse();
-  }
-
-  Future<void> _getAiResponse() async {
     try {
-      final recentMessages = _messages.where((m) => m.text.isNotEmpty).toList();
-      final contextMessages = recentMessages.length > 10 
-          ? recentMessages.sublist(recentMessages.length - 10) 
-          : recentMessages;
-
-      final chatHistory = contextMessages.map((m) => {
-        'role': m.sender == MessageSender.user ? 'user' : 'assistant',
-        'content': m.text,
-      }).toList();
-
-      final response = await ContentService.chatWithAi(chatHistory, language: _language ?? 'english');
-
-      final aiMessage = ChatMessage(
+      final response = await ContentService.chatWithAi(
+        _messages.map((m) => {
+          'role': m.sender == MessageSender.user ? 'student' : 'ai',
+          'content': m.text
+        }).toList(),
+        language: _currentLanguage,
+        chatId: _currentSessionId,
+      );
+      
+      _messages.add(ChatMessage(
         id: DateTime.now().toString(),
         text: response,
         sender: MessageSender.ai,
         timestamp: DateTime.now(),
-      );
-
-      _messages.add(aiMessage);
+      ));
     } catch (e) {
-      debugPrint('ChatProvider error: $e');
+      debugPrint('Error sending message: $e');
       _messages.add(ChatMessage(
         id: DateTime.now().toString(),
         text: 'Too many students are chatting now, please try later.',
@@ -186,13 +194,30 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> speak(String text) async {
+  Future<void> speak(String messageId, String text) async {
+    if (_currentlySpeakingMessageId == messageId) {
+      await stopSpeaking();
+      return;
+    }
+
+    await stopSpeaking();
+    _currentlySpeakingMessageId = messageId;
+    notifyListeners();
+
     await _tts.setLanguage(_currentLanguage == 'urdu' ? 'ur-PK' : 'en-US');
     await _tts.setPitch(1.0);
+    
+    _tts.setCompletionHandler(() {
+      _currentlySpeakingMessageId = null;
+      notifyListeners();
+    });
+
     await _tts.speak(text);
   }
 
   Future<void> stopSpeaking() async {
     await _tts.stop();
+    _currentlySpeakingMessageId = null;
+    notifyListeners();
   }
 }
