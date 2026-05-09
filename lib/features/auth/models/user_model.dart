@@ -6,6 +6,8 @@ class User {
   final String? grade;
   final String? board;
   final String? medium;
+  final String? role;
+  final bool isPremium;
 
   User({
     required this.id,
@@ -15,6 +17,8 @@ class User {
     this.grade,
     this.board,
     this.medium,
+    this.role,
+    this.isPremium = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -26,6 +30,8 @@ class User {
       grade: json['grade'],
       board: json['board'],
       medium: json['medium'],
+      role: json['role'],
+      isPremium: json['isPremium'] ?? false,
     );
   }
 
@@ -38,6 +44,8 @@ class User {
       'grade': grade,
       'board': board,
       'medium': medium,
+      'role': role,
+      'isPremium': isPremium,
     };
   }
 }

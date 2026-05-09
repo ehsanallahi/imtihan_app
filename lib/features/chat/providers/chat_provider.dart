@@ -134,9 +134,16 @@ class ChatProvider with ChangeNotifier {
       ));
     } catch (e) {
       debugPrint('Error sending message: $e');
+      String errorMessage = 'Failed to reach AI Tutor. Please try again.';
+      if (e.toString().contains('Failed to reach AI Tutor')) {
+        errorMessage = 'AI service is currently unavailable. Please check your internet or try again later.';
+      } else {
+        errorMessage = e.toString().replaceAll('Exception: ', '');
+      }
+      
       _messages.add(ChatMessage(
         id: DateTime.now().toString(),
-        text: 'Too many students are chatting now, please try later.',
+        text: errorMessage,
         sender: MessageSender.ai,
         timestamp: DateTime.now(),
       ));

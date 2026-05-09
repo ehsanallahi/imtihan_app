@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/chat_provider.dart';
 import '../models/chat_model.dart';
+import '../../auth/providers/user_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialMessage;
@@ -58,6 +59,29 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 12),
             const Text('AI Tutor'),
+            const SizedBox(width: 8),
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                if (userProvider.user?.isPremium ?? false) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGold,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ],
         ),
         actions: [

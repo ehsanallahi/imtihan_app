@@ -52,9 +52,35 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 16),
-                Text(
-                  user?.name ?? 'Student',
-                  style: Theme.of(context).textTheme.displaySmall,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        user?.name ?? 'Student',
+                        style: Theme.of(context).textTheme.displaySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (user?.isPremium ?? false) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGold,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'PRO',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
                   '${user?.grade ?? 'Class 10'} - ${user?.board ?? 'Lahore Board'}',

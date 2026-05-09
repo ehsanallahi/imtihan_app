@@ -27,9 +27,34 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                Text(
-                  '${context.l10n('hello_student').replaceFirst('Student', user?.name ?? 'Student')}',
-                  style: Theme.of(context).textTheme.displaySmall,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${context.l10n('hello_student').replaceFirst('Student', user?.name ?? 'Student')}',
+                        style: Theme.of(context).textTheme.displaySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (user?.isPremium ?? false) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGold,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'PRO',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
                   context.l10n('ready_to_practice'),
