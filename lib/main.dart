@@ -10,11 +10,11 @@ import 'features/auth/providers/user_provider.dart';
 import 'features/mcq/providers/exam_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/services/secure_storage_service.dart';
 
-
-
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SecureStorageService.migrateAuthToken();
   runApp(
     MultiProvider(
       providers: [

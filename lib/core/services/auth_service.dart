@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/secure_storage_service.dart';
 
 class AuthService {
   static Future<bool> login(String email, String password) async {
@@ -18,8 +19,8 @@ class AuthService {
         final data = jsonDecode(response.body);
         final token = data['token'];
         
+        await SecureStorageService.saveToken(token);
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
         await prefs.setString('user_data', jsonEncode(data['user']));
         
         return true;
@@ -49,14 +50,14 @@ class AuthService {
   }
 
   static Future<void> logout() async {
+    await SecureStorageService.deleteToken();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
     await prefs.remove('user_data');
   }
 
   static Future<bool> isLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('auth_token');
+    final token = await SecureStorageService.getToken();
+    return token != null;
   }
 
   static Future<Map<String, dynamic>?> getUser() async {

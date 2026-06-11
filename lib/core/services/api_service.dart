@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/secure_storage_service.dart';
 
 class ApiService {
   // Production URL — set this after deploying to Vercel
@@ -33,8 +34,7 @@ class ApiService {
   }
 
   static Future<Map<String, String>> _getHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await SecureStorageService.getToken();
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -90,8 +90,7 @@ class ApiService {
   static Future<http.Response> multipartPost(String endpoint, String filePath) async {
     final base = await getBaseUrl();
     final url = Uri.parse('$base$endpoint');
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await SecureStorageService.getToken();
     
     var request = http.MultipartRequest('POST', url);
     if (token != null) {
